@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Component Locator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14161a;
+    --panel: #1b1e24;
+    --panel-raised: #22262e;
+    --line: #2c313a;
+    --text: #eceef0;
+    --text-dim: #9aa1ab;
+    --text-faint: #656c76;
+    --amber: #e8a33d;
+    --amber-dim: #6b5324;
+    --green: #6fcf97;
+    --red: #d97467;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, #21252c 0%, var(--bg) 60%);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding:48px 20px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  /* header */
+  header{margin-bottom:36px;}
+  .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--amber);
+    letter-spacing:0.02em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .kicker .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--amber);
+    box-shadow:0 0 8px 1px rgba(232,163,61,0.7);
+  }
+  h1{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:clamp(26px,5vw,34px);
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    color:var(--text-dim);
+    font-size:15px;
+    line-height:1.55;
+    margin:0;
+    max-width:56ch;
+  }
+
+  /* search */
+  .search-shell{
+    position:relative;
+    margin-top:28px;
+  }
+  .search-shell input{
+    width:100%;
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:17px;
+    padding:16px 46px 16px 46px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .search-shell input::placeholder{color:var(--text-faint);}
+  .search-shell input:focus{
+    border-color:var(--amber-dim);
+    box-shadow:0 0 0 3px rgba(232,163,61,0.12);
+  }
+  .search-icon{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:18px;height:18px;color:var(--text-faint);pointer-events:none;
+  }
+  .clear-btn{
+    position:absolute;right:10px;top:50%;transform:translateY(-50%);
+    background:none;border:none;color:var(--text-faint);
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+    cursor:pointer;padding:6px 8px;border-radius:6px;
+    display:none;
+  }
+  .clear-btn:hover{color:var(--text);background:var(--panel-raised);}
+
+  .meta-row{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:12px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--text-faint);
+  }
+
+  /* results */
+  #results{margin-top:20px;display:flex;flex-direction:column;gap:10px;}
+
+  .result-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    animation:fadeIn .18s ease both;
+  }
+  @keyframes fadeIn{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+
+  .cupboard-badge{
+    flex:0 0 auto;
+    width:52px;height:52px;
+    border-radius:9px;
+    background:linear-gradient(160deg, var(--panel-raised), #191c22);
+    border:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .cupboard-badge .num{
+    font-size:20px;font-weight:700;color:var(--amber);line-height:1;
+  }
+  .cupboard-badge .lbl{
+    font-size:8px;color:var(--text-faint);letter-spacing:0.06em;margin-top:3px;
+  }
+
+  .result-info{flex:1 1 auto;min-width:0;}
+  .result-name{
+    font-size:16px;font-weight:600;color:var(--text);
+    margin-bottom:4px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .result-name mark{
+    background:rgba(232,163,61,0.28);color:var(--amber);
+    border-radius:3px;padding:0 1px;
+  }
+  .result-cat{
+    font-size:13px;color:var(--text-dim);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+
+  .result-tags{
+    flex:0 0 auto;
+    display:flex;flex-direction:column;align-items:flex-end;gap:6px;
+  }
+  .qty{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;color:var(--text-dim);
+  }
+  .qty b{color:var(--text);font-weight:600;}
+  .used-by{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    padding:2px 8px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    color:var(--text-faint);
+  }
+  .used-by.common{color:var(--green);border-color:#2d4536;}
+  .used-by.club{color:#7fb2e5;border-color:#2a3c4d;}
+  .used-by.rover{color:#d99bd9;border-color:#3d2c42;}
+
+  /* multi-location note */
+  .also-in{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;color:var(--text-faint);
+    padding:0 18px 2px;
+    margin-top:-4px;
+  }
+
+  /* empty / idle states */
+  .state-box{
+    text-align:center;
+    padding:56px 24px;
+    color:var(--text-faint);
+    font-size:14px;
+    border:1px dashed var(--line);
+    border-radius:10px;
+    margin-top:20px;
+  }
+  .state-box .big{
+    font-family:'JetBrains Mono',monospace;
+    font-size:15px;color:var(--text-dim);
+    margin-bottom:6px;
+  }
+  .state-box .hint{margin-top:14px;font-size:13px;}
+  .state-box .hint span{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--text-dim);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:1px 7px;
+    margin:0 2px;
+    cursor:pointer;
+  }
+  .state-box .hint span:hover{border-color:var(--amber-dim);color:var(--amber);}
+
+  /* browse by cupboard */
+  .browse{
+    margin-top:56px;
+    border-top:1px solid var(--line);
+    padding-top:28px;
+  }
+  .browse-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:16px;
+  }
+  .browse-head h2{
+    font-family:'JetBrains Mono',monospace;
+    font-size:14px;font-weight:600;
+    color:var(--text-dim);
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  .cupboard-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+    gap:10px;
+  }
+  .cupboard-tile{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:border-color .15s ease, transform .1s ease;
+    text-align:left;
+  }
+  .cupboard-tile:hover{border-color:var(--amber-dim);transform:translateY(-1px);}
+  .cupboard-tile .n{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--amber);font-size:18px;font-weight:700;
+  }
+  .cupboard-tile .name{
+    font-size:12px;color:var(--text-dim);
+    margin-top:5px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .cupboard-tile .cnt{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;color:var(--text-faint);margin-top:6px;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:52px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--text-faint);
+  }
+
+  @media (max-width:480px){
+    .result-card{flex-wrap:wrap;}
+    .result-tags{flex-direction:row;align-items:center;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker"><span class="dot"></span>CLUB ROOM INVENTORY</div>
+    <h1>Where's the part?</h1>
+    <p>Type a component name to find which cupboard it's stored in. 171 items across 10 cupboards, pulled straight from the room inventory sheet.</p>
+  </header>
+
+  <div class="search-shell">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="e.g. Arduino Uno, resistor, GPS…" autocomplete="off" spellcheck="false">
+    <button class="clear-btn" id="clearBtn">clear</button>
+  </div>
+  <div class="meta-row">
+    <span id="resultCount"></span>
+    <span id="totalCount"></span>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="browse">
+    <div class="browse-head">
+      <h2>BROWSE BY CUPBOARD</h2>
+    </div>
+    <div class="cupboard-grid" id="cupboardGrid"></div>
+  </div>
+
+  <footer>Built from Final_Inventory.xlsx — cupboard number = inventory sheet's highlighted section.</footer>
+</div>
+
+<script>
+const ITEMS = [{"name": "Programmable DC Power Supply", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Power Supply (AC–DC)", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Power Supply", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "DC–DC Step Down Converter", "count": 9, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "DC–DC Step Down (Mini 560)", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Duel Channel 3A DC Motor Driver", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "ULN2003 Motor Driver", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "12V Battery", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "11V 1000 mAh Battery", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "11.1V 2500 mAh Battery", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Battery Charging Probes", "count": 0, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Battery Charge Module", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Cell Holder", "count": 8, "used_by": "club", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "Transformer", "count": 20, "used_by": "", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "XT30", "count": 10, "used_by": "", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "XT60", "count": 18, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "XT90", "count": 5, "used_by": "common", "status": "Inside Club room", "cupboard_num": 1, "cupboard_name": "Power Supplies & Energy Storage"}, {"name": "2 Pin Connectors", "count": "1 Pack", "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "2 Pin Terminal Blocks", "count": 107, "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "3 Pin Connector (Green)", "count": 9, "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "3 Pin Connector (White)", "count": 5, "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "4 Pin Connector", "count": 2, "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Connector Kit", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Connector Pins Box", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Cylindrical Power Point", "count": 8, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "DC Power Jack", "count": 2, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Motor Connector", "count": 8, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Bridge Rectifier MG10S", "count": "3 Packs", "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "KBPC Bridge Rectifier", "count": 4, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "BNC Connector", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Ethernet to 10 Pin Converter", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "TTL to RS485", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Pvc Caps", "count": 25, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Pvc Elbow", "count": "Many", "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Thread Seal Tape", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 2, "cupboard_name": "Connectors, Wiring & Electrical Accessories"}, {"name": "Arduino Uno", "count": 13, "used_by": "common", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "Arduino Nano", "count": 16, "used_by": "common", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "Arduino Mega", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "Arduino USB Cable", "count": 26, "used_by": "common", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "8051 Development Board", "count": 15, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "8051 Prototyping Board", "count": 1, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "89 Series Programmer", "count": 1, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AT89C51 IC", "count": 16, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AVR Development Board", "count": 9, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AVR Programmer", "count": 5, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AVR Programmer Board", "count": 1, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AVR Trainer Board", "count": 4, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AVR USB Programmer", "count": 1, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AVR ISP", "count": 2, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "ARM Cortex M3", "count": 16, "used_by": "rover", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "ATMEGA8L 8PU", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "LC1 Board Rev B", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "N450 Devboard", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "AB-4375", "count": 5, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "89+ EU Pro V02", "count": 3, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "Easy VR Shield 2.0", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "Embeddinator", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 3, "cupboard_name": "Microcontrollers & Development Boards"}, {"name": "Ultrasonic Sensor (HC-SR04)", "count": 35, "used_by": "club", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "IR Sensor", "count": 25, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "IR Emitter", "count": 4, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "LDR Sensor", "count": 3, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Photo Sensor", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Air Quality Sensor (MQ135)", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "HC-SR501 Motion Sensor", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Magnetic Sensor", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Vibration Sensor", "count": 3, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Soil NPK Sensor", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Soil Moisture Sensor", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "GY GPS 6M V2", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "GPS Receiver", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "3-Axis Accelerometer", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "3-Axis Accelerator Sensor", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "HW290 (Gyroscope)", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Current Sensor Module", "count": 10, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "NTC", "count": "Many", "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "AI Cloud Inside", "count": 5, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "D2001 8 Sensor", "count": 4, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "Grove 8-Channel I2C Encoder", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 4, "cupboard_name": "Sensors & Measurement Modules"}, {"name": "RX–TX", "count": 2, "used_by": "club", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "ESP 01 Wireless Module", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "Bluetooth HC-05", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "Bluetooth Serial Transceiver Module", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "SIM 900 Module", "count": 4, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "SIM 900 GSM Modem", "count": 7, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "AE GSM Modem", "count": 3, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "RF Transmitter", "count": 17, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "RF Receiver", "count": 20, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "433 MHz RF Transmitter Module", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "AI Cloud Inside", "count": 5, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "GY GPS 6M V2", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 5, "cupboard_name": "Communication & Networking Modules"}, {"name": "DC Motor", "count": 39, "used_by": "common", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "300 RPM Motors", "count": 36, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Rhino 12V 220 RPM Servo", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Micro Servo Motor", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Stepper Motor", "count": 2, "used_by": "common", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Stepper Motor Driver", "count": 19, "used_by": "common", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Digital Stepping Drive", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Rocket RC BLDC Inrunner (1000KV)", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Motor Mount", "count": 4, "used_by": "common", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Solenoid", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Valve", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Water Pump", "count": 6, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Cooler Pump", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Nitro Engine", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Propeller", "count": 3, "used_by": "club", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Quadcopter Frame", "count": 1, "used_by": "club", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Something Related to Drone", "count": 5, "used_by": "club", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Fan (RGB)", "count": 1, "used_by": "club", "status": "Inside Club room", "cupboard_num": 6, "cupboard_name": "Motors, Actuators & Motion Components"}, {"name": "Chassis", "count": 12, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Tyres", "count": 36, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Bearings", "count": "—", "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Bearing Unit", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Aluminium Frame", "count": 4, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Aluminium Pillars", "count": "2–3", "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Metallic Strips", "count": "—", "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Caster Wheels", "count": 11, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "L Bracket", "count": 4, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Tapping Screws", "count": 36, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Big Screws/Nuts/Bolts", "count": "—", "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Washers", "count": "—", "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Allen Key Tool Box", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Screw Boxes", "count": 2, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Screw Driver Wallet", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Screw Driver Set", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "115-in-1 Tool Kit", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Tools Box", "count": "—", "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Cellotape Dispenser", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Glue Sticks", "count": 4, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Silicon Sealant", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Epoxy Adhesive", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "Waterproof Tape", "count": 1, "used_by": "common", "status": "Inside Club room", "cupboard_num": 7, "cupboard_name": "Mechanical Structure, Hardware & Tools"}, {"name": "5 Inch HDMI LCD V2", "count": 1, "used_by": "club", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "XPT2046 Touch Controller", "count": 1, "used_by": "club", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "2004A LCD Module", "count": 1, "used_by": "club", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "Display LED", "count": 33, "used_by": "club", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "7 Segment LEDs", "count": 99, "used_by": "club", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "7 Segment Display", "count": 1, "used_by": "club", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "Blue LED", "count": "4 Packs", "used_by": "common", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "Green LED", "count": "4 Packs", "used_by": "common", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "Yellow LED", "count": "5 Packs", "used_by": "common", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "White LED", "count": "3 Packs", "used_by": "common", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "LED Lighting", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "4-Port LED", "count": "1 Box", "used_by": "", "status": "Inside Club room", "cupboard_num": 8, "cupboard_name": "Display, Interface & Visual Modules"}, {"name": "MOSFET", "count": 7, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "Resistors", "count": "Many", "used_by": "common", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "Capacitors", "count": "Many", "used_by": "common", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "Diode", "count": "Many", "used_by": "common", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "Crystal Oscillator", "count": 16, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "Optocoupler 4N35", "count": 5, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "NE555P", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "TL072P", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "DM74LS32N (OR Gate)", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "74HC04 Hex Inverter", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "74AC74 IC", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "74HC08 (AND Gate)", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "S32P IC", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "FFME 9235 IC", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "FR100 2", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "CD4017BM", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 9, "cupboard_name": "ICs, Logic Components & Electronic Parts"}, {"name": "Filament (ABS+)", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Black Chart Papers", "count": "7–8", "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Foil Paper", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Internet Boundy", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Mod Chip for PS2", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "BNC Connector", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "3 Plug Switch", "count": 2, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Magnetic Sensor", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Inch Tape", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Pvc Caps", "count": 25, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Cellotape Dispenser", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}, {"name": "Rocket RC BLDC Inrunner", "count": 1, "used_by": "", "status": "Inside Club room", "cupboard_num": 10, "cupboard_name": "Miscellaneous / Consumables / Lab Items"}];
+
+const input = document.getElementById('search');
+const resultsEl = document.getElementById('results');
+const resultCountEl = document.getElementById('resultCount');
+const totalCountEl = document.getElementById('totalCount');
+const clearBtn = document.getElementById('clearBtn');
+const cupboardGrid = document.getElementById('cupboardGrid');
+
+totalCountEl.textContent = ITEMS.length + ' items · 10 cupboards';
+
+// build cupboard summary
+const cupboards = {};
+ITEMS.forEach(it => {
+  if(!cupboards[it.cupboard_num]){
+    cupboards[it.cupboard_num] = {num: it.cupboard_num, name: it.cupboard_name, count: 0};
+  }
+  cupboards[it.cupboard_num].count++;
+});
+const cupboardList = Object.values(cupboards).sort((a,b)=>a.num-b.num);
+
+cupboardGrid.innerHTML = cupboardList.map(c => `
+  <button class="cupboard-tile" data-cupboard="${c.num}">
+    <div class="n">${String(c.num).padStart(2,'0')}</div>
+    <div class="name">${escapeHtml(c.name)}</div>
+    <div class="cnt">${c.count} items</div>
+  </button>
+`).join('');
+
+cupboardGrid.querySelectorAll('.cupboard-tile').forEach(tile=>{
+  tile.addEventListener('click', ()=>{
+    const num = tile.getAttribute('data-cupboard');
+    const catName = cupboards[num].name;
+    input.value = '';
+    renderResults(ITEMS.filter(i => String(i.cupboard_num) === num), '');
+    window.scrollTo({top: 0, behavior:'smooth'});
+    resultCountEl.textContent = `Cupboard ${num} — ${catName}`;
+  });
+});
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function highlight(text, q){
+  if(!q) return escapeHtml(text);
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if(idx === -1) return escapeHtml(text);
+  return escapeHtml(text.slice(0,idx)) + '<mark>' + escapeHtml(text.slice(idx, idx+q.length)) + '</mark>' + escapeHtml(text.slice(idx+q.length));
+}
+
+function score(name, q){
+  const n = name.toLowerCase();
+  if(n === q) return 0;
+  if(n.startsWith(q)) return 1;
+  const wordBoundary = new RegExp('\\\\b' + q.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'));
+  if(wordBoundary.test(n)) return 2;
+  if(n.includes(q)) return 3;
+  return 4;
+}
+
+function groupByName(items){
+  const map = new Map();
+  items.forEach(it => {
+    const key = it.name.toLowerCase();
+    if(!map.has(key)) map.set(key, []);
+    map.get(key).push(it);
+  });
+  return map;
+}
+
+function renderResults(matches, q){
+  if(matches.length === 0){
+    resultsEl.innerHTML = '';
+    resultCountEl.textContent = '';
+    if(q){
+      resultsEl.innerHTML = `
+        <div class="state-box">
+          <div class="big">No match for "${escapeHtml(q)}"</div>
+          <div>It might be listed under a different name, or it's not in this room's inventory.</div>
+        </div>`;
+    }
+    return;
+  }
+
+  const grouped = groupByName(matches);
+  resultCountEl.textContent = matches.length + (matches.length===1 ? ' match' : ' matches');
+
+  let html = '';
+  grouped.forEach((entries) => {
+    const primary = entries[0];
+    const others = entries.slice(1);
+    const usedByClass = (primary.used_by || '').toLowerCase();
+    html += `
+      <div class="result-card">
+        <div class="cupboard-badge">
+          <div class="num">${String(primary.cupboard_num).padStart(2,'0')}</div>
+          <div class="lbl">CUPBD</div>
+        </div>
+        <div class="result-info">
+          <div class="result-name">${highlight(primary.name, q)}</div>
+          <div class="result-cat">${escapeHtml(primary.cupboard_name)}</div>
+        </div>
+        <div class="result-tags">
+          <div class="qty">qty <b>${escapeHtml(String(primary.count))}</b></div>
+          ${primary.used_by ? `<div class="used-by ${usedByClass}">${escapeHtml(primary.used_by)}</div>` : ''}
+        </div>
+      </div>`;
+    if(others.length){
+      html += `<div class="also-in">also in cupboard${others.length>1?'s':''} ${others.map(o=>o.cupboard_num).join(', ')} (${others.map(o=>o.cupboard_name).join(' · ')})</div>`;
+    }
+  });
+  resultsEl.innerHTML = html;
+}
+
+function doSearch(){
+  const q = input.value.trim().toLowerCase();
+  clearBtn.style.display = q ? 'block' : 'none';
+
+  if(!q){
+    resultsEl.innerHTML = `
+      <div class="state-box">
+        <div class="big">Start typing to search</div>
+        <div>Try: <span data-fill="Arduino">Arduino</span><span data-fill="resistor">resistor</span><span data-fill="GPS">GPS</span><span data-fill="motor">motor</span></div>
+      </div>`;
+    resultCountEl.textContent = '';
+    resultsEl.querySelectorAll('[data-fill]').forEach(el=>{
+      el.addEventListener('click', ()=>{ input.value = el.getAttribute('data-fill'); doSearch(); input.focus(); });
+    });
+    return;
+  }
+
+  const matches = ITEMS
+    .filter(it => it.name.toLowerCase().includes(q))
+    .sort((a,b) => score(a.name, q) - score(b.name, q) || a.name.localeCompare(b.name));
+
+  renderResults(matches, q);
+}
+
+input.addEventListener('input', doSearch);
+clearBtn.addEventListener('click', ()=>{ input.value=''; doSearch(); input.focus(); });
+
+doSearch();
+</script>
+</body>
+</html>
